@@ -1,0 +1,5 @@
+# Ignore generated runtime data
+/data/*
+!/data/.gitkeep
+# Python virtual environment
+.venv/

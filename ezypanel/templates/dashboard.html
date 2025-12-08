@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 col-xl-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-0">Domains</h5>
+                    <small class="text-muted">Manage Nginx + PHP-FPM provisioning</small>
+                </div>
+                <span class="badge text-bg-dark">{{ domains|length }} total</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Hostname</th>
+                            <th>PHP</th>
+                            <th>Document Root</th>
+                            <th class="text-center">Status</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% if domains %}
+                            {% for domain in domains %}
+                                <tr class="domain-row domain-row--{% if domain.enabled %}enabled{% else %}disabled{% endif %}">
+                                    <td>
+                                        <a class="fw-semibold" href="{{ url_for('panel.domain_detail', domain_id=domain.id) }}">
+                                            {{ domain.hostname }}
+                                        </a>
+                                        <div class="text-muted small">Updated {{ domain.updated_label }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill text-bg-secondary">PHP {{ domain.php_version }}</span>
+                                    </td>
+                                    <td class="small text-muted">
+                                        {{ domain.document_root }}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if domain.enabled %}
+                                            <span class="badge text-bg-success">Enabled</span>
+                                        {% else %}
+                                            <span class="badge text-bg-secondary">Disabled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-2">
+                                            <form method="post" action="{{ url_for('panel.toggle_domain', domain_id=domain.id) }}">
+                                                <button class="btn btn-sm {% if domain.enabled %}btn-outline-secondary{% else %}btn-success{% endif %}">
+                                                    {% if domain.enabled %}Disable{% else %}Enable{% endif %}
+                                                </button>
+                                            </form>
+                                            <form method="post" action="{{ url_for('panel.delete_domain', domain_id=domain.id) }}" onsubmit="return confirm('Delete {{ domain.hostname }} and remove all its files?');">
+                                                <button class="btn btn-sm btn-outline-danger">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <div class="d-flex flex-column align-items-center gap-2">
+                                        <span class="fs-2">🛰️</span>
+                                        <div>No domains yet. Add your first hostname on the right.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Add Domain</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('panel.add_domain') }}" class="vstack gap-3">
+                    <div>
+                        <label class="form-label">Hostname</label>
+                        <input name="hostname" type="text" class="form-control" placeholder="example.com" required>
+                    </div>
+                    <div>
+                        <label class="form-label">PHP Version</label>
+                        <select name="php_version" class="form-select">
+                            {% for version in php_versions %}
+                                <option value="{{ version }}">{{ version }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Custom notes or instructions"></textarea>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Provision domain</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

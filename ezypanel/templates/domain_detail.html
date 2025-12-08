@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="btn btn-link px-0 mb-3" href="{{ url_for('panel.dashboard') }}">← Back to domains</a>
+<div class="row g-4">
+    <div class="col-12 col-xl-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-0">{{ domain.hostname }}</h4>
+                    <small class="text-muted">Provisioned {{ domain.created_label }}</small>
+                </div>
+                <form method="post" action="{{ url_for('panel.toggle_domain', domain_id=domain.id) }}">
+                    <button class="btn {% if domain.enabled %}btn-outline-secondary{% else %}btn-success{% endif %}">
+                        {% if domain.enabled %}Disable{% else %}Enable{% endif %}
+                    </button>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-sm-6">
+                        <div class="info-tile">
+                            <div class="small text-muted">Document Root</div>
+                            <div class="fw-semibold">{{ domain.document_root }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="info-tile">
+                            <div class="small text-muted">Status</div>
+                            <div>
+                                {% if domain.enabled %}
+                                    <span class="badge text-bg-success">Enabled</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Disabled</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="info-tile">
+                            <div class="small text-muted">PHP Version</div>
+                            <div class="fw-semibold">{{ domain.php_version }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="info-tile">
+                            <div class="small text-muted">Socket</div>
+                            <div class="fw-semibold small">{{ domain.php_socket_path }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-0">Nginx Configuration</h5>
+                    <small class="text-muted">Atomic save + nginx -t before reload</small>
+                </div>
+                <form method="post" action="{{ url_for('panel.toggle_domain', domain_id=domain.id) }}">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Reload &amp; test</button>
+                </form>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('panel.update_nginx', domain_id=domain.id) }}" class="vstack gap-3">
+                    <textarea name="nginx_config" class="form-control code-block" rows="14">{{ nginx_config }}</textarea>
+                    <button class="btn btn-primary" type="submit">Save Nginx config</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">PHP-FPM Pool</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('panel.update_php', domain_id=domain.id) }}" class="vstack gap-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">PHP Version</label>
+                            <select name="php_version" class="form-select">
+                                {% for version in php_versions %}
+                                    <option value="{{ version }}" {% if version == domain.php_version %}selected{% endif %}>{{ version }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Socket</label>
+                            <input class="form-control" value="{{ domain.php_socket_path }}" disabled>
+                        </div>
+                    </div>
+                    <textarea name="php_config" class="form-control code-block" rows="12">{{ php_config }}</textarea>
+                    <button class="btn btn-primary" type="submit">Save PHP-FPM pool</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-4">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Path Summary</h5>
+            </div>
+            <div class="card-body small">
+                <dl class="row mb-0">
+                    <dt class="col-4 text-muted">Nginx</dt>
+                    <dd class="col-8">{{ domain.nginx_config_path }}</dd>
+                    <dt class="col-4 text-muted">PHP Pool</dt>
+                    <dd class="col-8">{{ domain.php_fpm_pool_path }}</dd>
+                    <dt class="col-4 text-muted">Document root</dt>
+                    <dd class="col-8">{{ domain.document_root }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white d-flex align-items-center justify-content-between">
+                <h5 class="mb-0">PHP Extensions</h5>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#extensionsPanel" aria-expanded="true">Toggle</button>
+            </div>
+            <div id="extensionsPanel" class="collapse show">
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('panel.update_extensions_route', domain_id=domain.id) }}" class="vstack gap-3">
+                        <div class="extension-grid">
+                            {% for extension in extensions %}
+                                <label class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="extensions" value="{{ extension }}"
+                                            {% if extension in domain.php_extensions %}checked{% endif %}>
+                                    <span class="form-check-label">{{ extension }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <button class="btn btn-outline-primary" type="submit">Update extensions</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
