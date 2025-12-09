@@ -51,8 +51,16 @@ chmod -R 755 /app/data
 chmod 1777 /app/data/tmp  # Sticky bit for tmp directory
 
 # Create default PHP info file for testing
-mkdir -p /app/data/var/www/default/public
+mkdir -p /app/data/var/www/default/public \
+         /app/data/var/www/default/filemanager
 echo "<?php phpinfo();" > /app/data/var/www/default/public/index.php
+
+# Download TinyFileManager
+if [ ! -f "/app/data/var/www/default/filemanager/tinyfilemanager.php" ]; then
+    echo "Downloading TinyFileManager..."
+    curl -fsSL "https://raw.githubusercontent.com/prasathmani/tinyfilemanager/refs/heads/master/tinyfilemanager.php" \
+        -o "/app/data/var/www/default/filemanager/tinyfilemanager.php"
+fi
 
 # Initialize the database if it doesn't exist
 if [ ! -f "/app/data/panel.db" ]; then

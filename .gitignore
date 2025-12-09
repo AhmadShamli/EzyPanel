@@ -5,6 +5,7 @@
 !/data/var/www
 /data/var/www/*
 !/data/var/www/default
+/data/var/www/default/filemanager/tinyfilemanager.php
 !/data/.gitkeep
 # Python virtual environment
 .venv/
