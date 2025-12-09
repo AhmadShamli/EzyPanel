@@ -14,14 +14,24 @@ mkdir -p /app/data/nginx/sites-available \
          /app/data/sessions \
          /app/data/tmp
 
-# Create PHP-FPM pool directories for each version
+# Link Nginx site directories into /etc so new configs are picked up automatically
+mkdir -p /app/data/nginx/sites-available /app/data/nginx/sites-enabled
+rm -rf /etc/nginx/sites-available /etc/nginx/sites-enabled
+ln -sf /app/data/nginx/sites-available /etc/nginx/sites-available
+ln -sf /app/data/nginx/sites-enabled /etc/nginx/sites-enabled
+
+# Create PHP-FPM pool directories for each version and bind them into /etc/php
 for version in "${PHP_VERSIONS[@]}"; do
-    mkdir -p "/app/data/php-fpm/${version}/pool.d"
+    DATA_POOL_DIR="/app/data/php-fpm/${version}/pool.d"
+    mkdir -p "${DATA_POOL_DIR}"
     
-    # Copy default PHP-FPM pool configuration if it doesn't exist
-    if [ ! -f "/app/data/php-fpm/${version}/www.conf" ]; then
-        cp "/etc/php/${version}/fpm/pool.d/www.conf" "/app/data/php-fpm/${version}/www.conf"
+    # Seed default PHP-FPM pool configuration if it doesn't exist
+    if [ ! -f "${DATA_POOL_DIR}/www.conf" ]; then
+        cp "/etc/php/${version}/fpm/pool.d/www.conf" "${DATA_POOL_DIR}/www.conf"
     fi
+    
+    rm -rf "/etc/php/${version}/fpm/pool.d"
+    ln -sf "${DATA_POOL_DIR}" "/etc/php/${version}/fpm/pool.d"
     
     # Create PHP session directory for each version
     mkdir -p "/var/lib/php/sessions-${version}"

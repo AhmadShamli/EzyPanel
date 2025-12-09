@@ -10,6 +10,7 @@ EzyPanel is a lightweight and easy-to-use web hosting control panel for managing
 - 🌐 Nginx configuration management
 - 🐘 Multi-PHP version support (7.4, 8.0, 8.1, 8.2, 8.3, 8.4, 8.5)
 - 🐳 Docker support for easy deployment
+- 📂 File manager support (TinyFileManager) at `http://localhost:3000/filemanager`
 - 🔄 Easy enable/disable domains
 - 🗑️ Complete domain removal with cleanup
 - 📝 Default index page template for new domains
@@ -50,7 +51,11 @@ EzyPanel is a lightweight and easy-to-use web hosting control panel for managing
    docker-compose up -d --build
    ```
 
-4. The application will be available at `http://localhost:5000`
+4. Access the application:
+   - Main panel: `http://localhost:5000`
+   - File Manager: `http://localhost:5000/filemanager`
+
+   > **Note**: The file manager is automatically downloaded during the first run and can be used to manage files in the `/app/data/var/www/` directory.
 
 ### Option 2: Manual Installation
 
