@@ -231,7 +231,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php7.4-redis \
     php7.4-memcached \
     php7.4-ssh2 \
-    php7.4-mongodb \
     php7.4-xdebug \
     && rm -rf /var/lib/apt/lists/*
 
