@@ -200,7 +200,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.0-redis \
     php8.0-memcached \
     php8.0-ssh2 \
-    php8.0-mongodb \
     php8.0-xdebug \
     && rm -rf /var/lib/apt/lists/*
 
