@@ -87,10 +87,10 @@ if [ ! -f "/app/data/var/www/default/filemanager/tinyfilemanager.php" ]; then
 fi
 
 # Initialize the database if it doesn't exist
-if [ ! -f "/app/data/panel.db" ]; then
-    echo "Initializing database..."
-    flask db upgrade
-    # Add any initial data here if needed
-fi
+#if [ ! -f "/app/data/panel.db" ]; then
+#    echo "Initializing database..."
+#    flask db upgrade
+#    # Add any initial data here if needed
+#fi
 
 echo "Initialization complete!"

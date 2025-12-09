@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ezypanel_internal
+    container_name: ezypanel
     restart: unless-stopped
     volumes:
       - ./:/app
@@ -21,7 +21,7 @@ services:
       - SYSTEMCTL_BIN=/bin/true
       - SIMULATE_SERVER_COMMANDS=false
     networks:
-      - ezypanel_internal_network
+      - internal_network
     cap_add:
       - SYS_ADMIN
     security_opt:
@@ -32,5 +32,5 @@ volumes:
   ezypanel_logs:
 
 networks:
-  ezypanel_internal_network:
+  internal_network:
     driver: bridge

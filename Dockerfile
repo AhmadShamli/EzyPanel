@@ -251,8 +251,8 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Configure PHP-FPM
-RUN sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/*/fpm/pool.d/www.conf \
-    && sed -i 's/listen = \/run\/php\/php.*-fpm.sock/listen = \/app\/data\/run\/php\/php-fpm.sock/g' /etc/php/*/fpm/pool.d/www.conf
+#RUN sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/*/fpm/pool.d/www.conf \
+#    && sed -i 's/listen = \/run\/php\/php.*-fpm.sock/listen = \/app\/data\/run\/php\/php-fpm.sock/g' /etc/php/*/fpm/pool.d/www.conf
 
 # Configure Nginx
 RUN rm /etc/nginx/sites-enabled/default
