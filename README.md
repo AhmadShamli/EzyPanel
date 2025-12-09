@@ -154,32 +154,35 @@ New domains will automatically get a default index page with server information.
 
 ```
 EzyPanel/
-├── docker/               # Docker configuration files
-│   ├── nginx.conf       # Nginx main configuration
-│   ├── ezypanel-nginx.conf  # EzyPanel Nginx site config
-│   ├── supervisord.conf # Process management
-│   └── init.sh          # Initialization script
-├── config_templates/    # Configuration templates
-│   └── default_index.php  # Default website index template
-├── data/                # Application data (mounted volume in Docker)
-│   ├── logs/            # Domain access/error logs
-│   ├── nginx/           # Nginx configurations
-│   ├── php-fpm/         # PHP-FPM configurations
-│   └── var/www/         # Website document roots
-├── ezypanel/           # Application package
-│   ├── static/         # Static files (CSS, JS, images)
-│   ├── templates/      # HTML templates
-│   ├── __init__.py     # Application factory
-│   ├── config.py       # Configuration settings
-│   ├── extensions.py   # Flask extensions
-│   ├── models.py       # Database models
-│   ├── routes.py       # Application routes
-│   └── services.py     # Business logic
-├── .env.example       # Example environment variables
-├── .gitignore         # Git ignore file
-├── app.py             # Application entry point
-├── config.py          # Configuration (deprecated, use .env)
-└── requirements.txt   # Python dependencies
+├── app.py                    # For running the app at configured port
+├── Dockerfile                # Multi-PHP image with all extensions
+├── docker-compose.yml        # Orchestrates nginx + PHP-FPM services
+├── .env.example              # Sample environment configuration
+├── config_templates/         # Template files used during provisioning
+│   ├── default_index.php     # Default site landing page
+│   ├── nginx.conf.tpl        # Nginx template
+│   └── php-fpm.conf.tpl      # PHP-FPM pool template (active)
+├── docker/                   # Docker runtime assets
+│   ├── nginx.conf            # Base nginx configuration
+│   ├── ezypanel-nginx.conf   # Reverse proxy for the panel
+│   ├── supervisord.conf      # Manages nginx + PHP-FPM daemons
+│   └── init.sh               # Container bootstrap script
+├── data/                     # Runtime data volume (created at runtime)
+│   ├── logs/                 # Domain access/error logs
+│   ├── nginx/                # Generated nginx configs & symlinks
+│   ├── php-fpm/              # Generated PHP-FPM pools per version
+│   └── var/www/              # Domain document roots
+├── ezypanel/                 # Flask application
+│   ├── __init__.py           # App factory
+│   ├── config.py             # Global configuration + paths
+│   ├── models.py             # SQLAlchemy models
+│   ├── routes.py             # Flask routes / dashboard
+│   ├── services.py           # Provisioning + config helpers
+│   ├── templates/            # Jinja2 templates for UI
+│   └── static/               # CSS/JS/assets
+├── requirements.txt          # Python dependencies
+├── README.md                 # Project documentation
+└── LICENSE                   # MIT License
 ```
 
 ## Contributing
