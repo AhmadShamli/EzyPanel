@@ -14,14 +14,28 @@ mkdir -p /app/data/nginx/sites-available \
          /app/data/sessions \
          /app/data/tmp
 
+
+# Stop nginx before any operation
+systemctl stop nginx
 # Link Nginx site directories into /etc so new configs are picked up automatically
 mkdir -p /app/data/nginx/sites-available /app/data/nginx/sites-enabled
 rm -rf /etc/nginx/sites-available /etc/nginx/sites-enabled
 ln -sf /app/data/nginx/sites-available /etc/nginx/sites-available
 ln -sf /app/data/nginx/sites-enabled /etc/nginx/sites-enabled
+# Test and start nginx new config dir setup
+if nginx -t >/dev/null 2>&1; then
+    echo "Nginx configuration is valid."
+    systemctl restart nginx
+else
+    echo "ERROR: Invalid Nginx configuration."
+    exit 1
+fi
 
 # Create PHP-FPM pool directories for each version and bind them into /etc/php
 for version in "${PHP_VERSIONS[@]}"; do
+    # Stop php fpm before any operation
+    service "php${version}-fpm" stop
+
     DATA_POOL_DIR="/app/data/php-fpm/${version}/pool.d"
     mkdir -p "${DATA_POOL_DIR}"
     
