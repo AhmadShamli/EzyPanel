@@ -29,7 +29,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.5-fpm \
     php8.5-cli \
     php8.5-common \
-    php8.5-opcache \
     php8.5-mysql \
     php8.5-pgsql \
     php8.5-sqlite3 \
@@ -38,7 +37,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.5-pdo-pgsql \
     php8.5-pdo-sqlite \
     php8.5-xml \
-    php8.5-json \
     php8.5-zip \
     php8.5-mbstring \
     php8.5-curl \
@@ -47,7 +45,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.5-intl \
     php8.5-exif \
     php8.5-soap \
-    php8.5-sodium \
     php8.5-xmlrpc \
     php8.5-imagick \
     php8.5-redis \
@@ -62,7 +59,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.4-fpm \
     php8.4-cli \
     php8.4-common \
-    php8.4-opcache \
     php8.4-mysql \
     php8.4-pgsql \
     php8.4-sqlite3 \
@@ -71,7 +67,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.4-pdo-pgsql \
     php8.4-pdo-sqlite \
     php8.4-xml \
-    php8.4-json \
     php8.4-zip \
     php8.4-mbstring \
     php8.4-curl \
@@ -80,7 +75,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.4-intl \
     php8.4-exif \
     php8.4-soap \
-    php8.4-sodium \
     php8.4-xmlrpc \
     php8.4-imagick \
     php8.4-redis \
@@ -95,7 +89,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.3-fpm \
     php8.3-cli \
     php8.3-common \
-    php8.3-opcache \
     php8.3-mysql \
     php8.3-pgsql \
     php8.3-sqlite3 \
@@ -104,7 +97,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.3-pdo-pgsql \
     php8.3-pdo-sqlite \
     php8.3-xml \
-    php8.3-json \
     php8.3-zip \
     php8.3-mbstring \
     php8.3-curl \
@@ -113,7 +105,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.3-intl \
     php8.3-exif \
     php8.3-soap \
-    php8.3-sodium \
     php8.3-xmlrpc \
     php8.3-imagick \
     php8.3-redis \
@@ -128,7 +119,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.2-fpm \
     php8.2-cli \
     php8.2-common \
-    php8.2-opcache \
     php8.2-mysql \
     php8.2-pgsql \
     php8.2-sqlite3 \
@@ -137,7 +127,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.2-pdo-pgsql \
     php8.2-pdo-sqlite \
     php8.2-xml \
-    php8.2-json \
     php8.2-zip \
     php8.2-mbstring \
     php8.2-curl \
@@ -146,7 +135,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.2-intl \
     php8.2-exif \
     php8.2-soap \
-    php8.2-sodium \
     php8.2-xmlrpc \
     php8.2-imagick \
     php8.2-redis \
@@ -161,7 +149,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.1-fpm \
     php8.1-cli \
     php8.1-common \
-    php8.1-opcache \
     php8.1-mysql \
     php8.1-pgsql \
     php8.1-sqlite3 \
@@ -170,7 +157,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.1-pdo-pgsql \
     php8.1-pdo-sqlite \
     php8.1-xml \
-    php8.1-json \
     php8.1-zip \
     php8.1-mbstring \
     php8.1-curl \
@@ -179,7 +165,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.1-intl \
     php8.1-exif \
     php8.1-soap \
-    php8.1-sodium \
     php8.1-xmlrpc \
     php8.1-imagick \
     php8.1-redis \
@@ -194,7 +179,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.0-fpm \
     php8.0-cli \
     php8.0-common \
-    php8.0-opcache \
     php8.0-mysql \
     php8.0-pgsql \
     php8.0-sqlite3 \
@@ -203,7 +187,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.0-pdo-pgsql \
     php8.0-pdo-sqlite \
     php8.0-xml \
-    php8.0-json \
     php8.0-zip \
     php8.0-mbstring \
     php8.0-curl \
@@ -212,7 +195,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.0-intl \
     php8.0-exif \
     php8.0-soap \
-    php8.0-sodium \
     php8.0-xmlrpc \
     php8.0-imagick \
     php8.0-redis \
@@ -245,7 +227,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php7.4-intl \
     php7.4-exif \
     php7.4-soap \
-    php7.4-sodium \
     php7.4-xmlrpc \
     php7.4-imagick \
     php7.4-redis \
