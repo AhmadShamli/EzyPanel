@@ -46,12 +46,16 @@ EzyPanel is a lightweight and easy-to-use web hosting control panel for managing
    ```
    (Optional) Edit the `.env` file to customize settings.
 
-3. Start the services:
+3. Start the services (pick the compose file that matches your setup):
    ```bash
-   docker-compose up -d --build
+   # Standalone: exposes ports 80/443/5000 on the host
+   docker compose -f docker-compose.standalone.yml up -d --build
+
+   # Internal: no host port exposure (run behind another proxy)
+   docker compose -f docker-compose.internal.yml up -d --build
    ```
 
-4. Access the application:
+4. Access the application (standalone mode):
    - Main panel: `http://localhost:5000`
    - File Manager: `http://localhost:5000/filemanager`
 
@@ -121,14 +125,17 @@ SIMULATE_SERVER_COMMANDS=True
 
 ### Docker (Recommended)
 ```bash
-# Start services
-docker-compose up -d
+# Start services (standalone)
+docker compose -f docker-compose.standalone.yml up -d
+
+# Start services (internal/no host ports)
+docker compose -f docker-compose.internal.yml up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
 ### Manual Installation
