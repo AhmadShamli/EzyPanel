@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  ezypanel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ezypanel
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5000:5000"
+    volumes:
+      - ./:/app
+      - ezypanel_data:/app/data
+      - ezypanel_logs:/var/log
+    environment:
+      - FLASK_APP=ezypanel
+      - FLASK_ENV=production
+      - SECRET_KEY=change-this-to-a-secure-secret-key
+      - WEB_USER=www-data
+      - WEB_GROUP=www-data
+      - NGINX_BIN=/usr/sbin/nginx
+      - SYSTEMCTL_BIN=/bin/true
+      - SIMULATE_SERVER_COMMANDS=false
+    networks:
+      - ezypanel_network
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+
+  # Database (optional, uncomment if you want to use MySQL/PostgreSQL instead of SQLite)
+  # db:
+  #   image: mysql:8.0
+  #   container_name: ezypanel_db
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: your-root-password
+  #     MYSQL_DATABASE: ezypanel
+  #     MYSQL_USER: ezypanel
+  #     MYSQL_PASSWORD: your-db-password
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   networks:
+  #     - ezypanel_network
+
+  # Redis (optional, uncomment if you want to use Redis for sessions/caching)
+  # redis:
+  #   image: redis:alpine
+  #   container_name: ezypanel_redis
+  #   restart: unless-stopped
+  #   networks:
+  #     - ezypanel_network
+
+volumes:
+  ezypanel_data:
+  ezypanel_logs:
+  # Uncomment if using MySQL/PostgreSQL
+  # db_data:
+
+networks:
+  ezypanel_network:
+    driver: bridge
+
+# Health checks and dependencies
+# Uncomment if you're using the optional services
+# depends_on:
+#   db:
+#     condition: service_healthy
+#   redis:
+#     condition: service_healthy
