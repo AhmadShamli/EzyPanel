@@ -5,10 +5,42 @@ listen = {{PHP_SOCKET}}
 listen.owner = {{WEB_USER}}
 listen.group = {{WEB_GROUP}}
 listen.mode = 0660
+
 pm = dynamic
-pm.max_children = 5
+pm.max_children = 25
 pm.start_servers = 2
 pm.min_spare_servers = 1
 pm.max_spare_servers = 3
+pm.max_requests = 500
+
 php_admin_value[memory_limit] = 256M
-php_admin_value[upload_max_filesize] = 50M
+php_admin_value[upload_max_filesize] = 64M
+php_admin_value[post_max_size] = 64M
+php_admin_value[max_execution_time] = 300
+php_admin_value[max_input_time] = 300
+php_admin_value[request_terminate_timeout] = 300
+
+php_admin_value[session.save_path] = /app/data/sessions
+php_admin_value[session.save_handler] = files
+php_admin_value[session.gc_maxlifetime] = 1440
+php_admin_value[session.cookie_httponly] = 1
+php_admin_value[session.cookie_secure] = 1
+
+php_admin_value[opcache.enable] = 1
+php_admin_value[opcache.memory_consumption] = 128
+php_admin_value[opcache.interned_strings_buffer] = 8
+php_admin_value[opcache.max_accelerated_files] = 4000
+php_admin_value[opcache.validate_timestamps] = 1
+php_admin_value[opcache.revalidate_freq] = 60
+
+php_admin_flag[display_errors] = off
+php_admin_flag[log_errors] = on
+php_admin_value[error_reporting] = E_ALL & ~E_DEPRECATED & ~E_STRICT
+php_admin_value[error_log] = /app/data/logs/php/{{HOSTNAME}}-error.log
+
+php_admin_value[open_basedir] = /app/data/var/www/{{HOSTNAME}}/:/tmp/
+php_admin_value[doc_root] = /app/data/var/www/{{HOSTNAME}}/public
+php_admin_value[sys_temp_dir] = /tmp
+php_admin_value[upload_tmp_dir] = /app/data/tmp
+
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system,proc_open,popen,curl_exec,curl_multi_exec,parse_ini_file,show_source
