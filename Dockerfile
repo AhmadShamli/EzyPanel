@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
     unzip \
     git \
+    logrotate \
     && rm -rf /var/lib/apt/lists/*
 
 # PHP 8.5 with all extensions
@@ -268,6 +269,14 @@ RUN chmod -R 755 /app/data
 
 # Expose ports
 EXPOSE 80 443 5000
+
+# Copy docker init.sh
+COPY docker/init.sh /app/docker/init.sh
+RUN chmod +x /app/docker/init.sh
+
+# Copy logrotate.sh
+COPY docker/logrotate.sh /app/docker/logrotate.sh
+RUN chmod +x /app/docker/logrotate.sh
 
 # Start services
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
