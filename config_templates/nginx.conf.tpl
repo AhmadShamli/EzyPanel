@@ -7,7 +7,7 @@ server {
     #access_log {{ACCESS_LOG}};
     #error_log {{ERROR_LOG}};
     access_log /dev/stdout vhost;
-    error_log /dev/stderr warn vhost_error;
+    error_log /dev/stderr warn;
 
     location / {
         try_files $uri $uri/ /index.php?$query_string;
