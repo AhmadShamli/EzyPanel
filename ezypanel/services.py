@@ -556,6 +556,7 @@ def save_nginx_config(domain: Domain, content: str) -> CommandResult:
 def save_php_config(domain: Domain, content: str, php_version: str) -> CommandResult:
     original_version = domain.php_version
     original_socket = domain.php_socket_path
+    original_pool_path = domain.php_fpm_pool_path
 
     #
     # 1. Handle version change
@@ -566,6 +567,7 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
         domain.php_version = php_version
         domain.php_fpm_pool_path = str(paths["php_pool"])
         domain.php_socket_path = str(paths["php_socket"])
+        content = content.replace(original_socket, domain.php_socket_path)
 
         # nginx config path stays the same
     else:
@@ -578,6 +580,8 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
     # 2. Write updated PHP-FPM pool config
     #
     atomic_write(Path(domain.php_fpm_pool_path), content)
+    # Remove previous pool file
+    _remove_path(original_pool_path)
 
     #
     # 3. If version changed, update nginx socket reference
