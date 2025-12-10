@@ -441,6 +441,10 @@ def test_nginx() -> CommandResult:
     nginx_bin = _config_value("NGINX_BIN")
     return _run_command([nginx_bin, "-t"])
 
+def test_nginx_safe() -> CommandResult:
+    # Use temporary pid file so running nginx doesn't block config test
+    cmd = ["nginx", "-t", "-g", "pid /tmp/nginx-test.pid;"]
+    return run_command(cmd)
 
 def reload_nginx() -> CommandResult:
     nginx_bin = _config_value("NGINX_BIN")
@@ -453,6 +457,19 @@ def reload_php_fpm(version: str) -> CommandResult:
     systemctl = _config_value("SYSTEMCTL_BIN")
     return _run_command([systemctl, "reload", service_name])
 
+def reload_php_fpm_signal(version: str) -> CommandResult:
+    pid_file = f"/run/php/php{version}-fpm.pid"
+
+    if not os.path.exists(pid_file):
+        return CommandResult(False, stderr=f"PHP-FPM PID file not found: {pid_file}")
+
+    try:
+        with open(pid_file) as f:
+            pid = int(f.read().strip())
+        os.kill(pid, signal.SIGUSR2)  # graceful reload
+        return CommandResult(True, stdout=f"PHP-FPM {version} reloaded")
+    except Exception as e:
+        return CommandResult(False, stderr=str(e))
 
 def _create_symlink(source: Path, link: Path) -> None:
     if link.exists() or link.is_symlink():
@@ -472,7 +489,7 @@ def enable_domain(domain: Domain) -> CommandResult:
 
     _create_symlink(available, enabled)
 
-    test_result = test_nginx()
+    test_result = test_nginx_safe()
     if not test_result.success:
         if enabled.exists():
             enabled.unlink()
@@ -496,7 +513,7 @@ def disable_domain(domain: Domain) -> CommandResult:
     if enabled.exists() or enabled.is_symlink():
         enabled.unlink()
 
-    test_result = test_nginx()
+    test_result = test_nginx_safe()
     if not test_result.success:
         return CommandResult(False, stderr=f"nginx -t failed: {test_result.stderr}")
 
@@ -529,7 +546,7 @@ def provision_domain(domain: Domain) -> None:
 
 def save_nginx_config(domain: Domain, content: str) -> CommandResult:
     atomic_write(Path(domain.nginx_config_path), content)
-    test_result = test_nginx()
+    test_result = test_nginx_safe()
     if not test_result.success:
         return CommandResult(False, stderr=f"nginx -t failed: {test_result.stderr}")
     return reload_nginx()
@@ -539,22 +556,32 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
     original_version = domain.php_version
     original_socket = domain.php_socket_path
 
-    if php_version != domain.php_version:
+    #
+    # 1. Handle version change
+    #
+    if php_version != original_version:
         paths = domain_paths(domain.hostname, php_version)
+
         domain.php_version = php_version
         domain.php_fpm_pool_path = str(paths["php_pool"])
         domain.php_socket_path = str(paths["php_socket"])
-        domain.nginx_config_path = domain.nginx_config_path  # unchanged path
+
+        # nginx config path stays the same
     else:
         paths = {
             "php_pool": Path(domain.php_fpm_pool_path),
             "php_socket": Path(domain.php_socket_path),
         }
 
+    #
+    # 2. Write updated PHP-FPM pool config
+    #
     atomic_write(Path(domain.php_fpm_pool_path), content)
 
+    #
+    # 3. If version changed, update nginx socket reference
+    #
     if php_version != original_version:
-        # Update nginx config socket reference
         nginx_path = Path(domain.nginx_config_path)
         nginx_content = read_file(nginx_path)
         nginx_content = nginx_content.replace(original_socket, domain.php_socket_path)
@@ -562,16 +589,34 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
 
     db.session.commit()
 
-    nginx_test = test_nginx()
+    #
+    # 4. Test Nginx safely (avoid pid lock)
+    #
+    nginx_test = test_nginx_safe()
+
     if not nginx_test.success:
-        return CommandResult(False, stderr=f"nginx -t failed: {nginx_test.stderr}")
+        return CommandResult(
+            False,
+            stderr=f"Nginx configuration test failed:\n{nginx_test.stderr}",
+        )
 
+    #
+    # 5. Reload nginx normally
+    #
     reload_nginx()
-    reload_result = reload_php_fpm(domain.php_version)
-    if not reload_result.success:
-        return CommandResult(False, stderr=f"PHP-FPM reload failed: {reload_result.stderr}")
 
-    return CommandResult(True, stdout="PHP-FPM pool updated")
+    #
+    # 6. Reload only this PHP-FPM version using PID signal (Docker compatible)
+    #
+    reload_result = reload_php_fpm_signal(domain.php_version)
+
+    if not reload_result.success:
+        return CommandResult(
+            False,
+            stderr=f"PHP-FPM reload failed:\n{reload_result.stderr}",
+        )
+
+    return CommandResult(True, stdout="PHP-FPM pool updated successfully.")
 
 
 #def update_extensions(domain: Domain, extensions: Iterable[str]) -> None:
