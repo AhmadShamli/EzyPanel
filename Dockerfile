@@ -5,6 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV FLASK_APP=ezypanel
 ENV FLASK_ENV=production
+USER root
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -292,6 +293,9 @@ RUN ln -sf /app/data/nginx/sites-available /etc/nginx/sites-available \
 # Default nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 RUN ln -s /app/data/nginx/sites-available/ezypanel /app/data/nginx/sites-enabled/
+RUN mkdir -p /run && \
+    touch /run/nginx.pid && \
+    chown root:root /run/nginx.pid
 
 # Configure Supervisor
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
