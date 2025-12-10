@@ -22,7 +22,7 @@ from .services import (
     read_file,
     save_nginx_config,
     save_php_config,
-    update_extensions,
+#    update_extensions,
 )
 
 panel_bp = Blueprint("panel", __name__)
