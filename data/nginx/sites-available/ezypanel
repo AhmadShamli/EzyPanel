@@ -22,7 +22,7 @@ server {
     # PHP execution for the filemanager alias
     location ~ ^/filemanager/.*\.php$ {
         alias /app/data/var/www/default/filemanager/;
-        fastcgi_pass unix:/app/data/run/php/php-fpm.sock;
+        fastcgi_pass unix:/app/data/run/php/php8.3-fpm.sock;
         include fastcgi_params;
 
         # Correct filesystem path for PHP-FPM

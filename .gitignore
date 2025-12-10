@@ -1,11 +1,2 @@
-# Ignore generated runtime data
-/data/*
-!/data/var
-/data/var/*
-!/data/var/www
-/data/var/www/*
-!/data/var/www/default
-/data/var/www/default/filemanager/tinyfilemanager.php
-!/data/.gitkeep
 # Python virtual environment
 .venv/
