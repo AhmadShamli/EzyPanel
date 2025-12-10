@@ -444,7 +444,7 @@ def test_nginx() -> CommandResult:
 def test_nginx_safe() -> CommandResult:
     # Use temporary pid file so running nginx doesn't block config test
     cmd = ["nginx", "-t", "-g", "pid /tmp/nginx-test.pid;"]
-    return run_command(cmd)
+    return _run_command(cmd)
 
 def reload_nginx() -> CommandResult:
     nginx_bin = _config_value("NGINX_BIN")
