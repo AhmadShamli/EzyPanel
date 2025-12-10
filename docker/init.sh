@@ -16,7 +16,7 @@ mkdir -p /app/data/nginx/sites-available \
 
 
 # Stop nginx before any operation
-systemctl stop nginx
+service nginx stop
 # Link Nginx site directories into /etc so new configs are picked up automatically
 mkdir -p /app/data/nginx/sites-available /app/data/nginx/sites-enabled
 rm -rf /etc/nginx/sites-available /etc/nginx/sites-enabled
@@ -25,7 +25,7 @@ ln -sf /app/data/nginx/sites-enabled /etc/nginx/sites-enabled
 # Test and start nginx new config dir setup
 if nginx -t >/dev/null 2>&1; then
     echo "Nginx configuration is valid."
-    systemctl restart nginx
+    service nginx restart
 else
     echo "ERROR: Invalid Nginx configuration."
     exit 1

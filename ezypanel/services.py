@@ -30,7 +30,6 @@ def _config_value(key: str, default=None):
 def _simulate() -> bool:
     return bool(_config_value("SIMULATE_SERVER_COMMANDS", True))
 
-
 def _run_command(args: Sequence[str]) -> CommandResult:
     if _simulate():
         return CommandResult(True, stdout=f"Simulated: {' '.join(args)}")
@@ -70,7 +69,73 @@ COMMON_PHP_EXTENSIONS = [
 ]
 
 
+def _system_php_versions() -> list[str]:
+    etc_php = Path("/etc/php")
+    if not etc_php.exists():
+        return []
+
+    versions: list[str] = []
+    for child in etc_php.iterdir():
+        if not child.is_dir():
+            continue
+        if any((child / subdir).exists() for subdir in ("fpm", "cli")):
+            versions.append(child.name)
+    return sorted(versions)
+
+
+def _system_default_php_version() -> str | None:
+    php_bin = shutil.which("php")
+    if not php_bin:
+        return None
+
+    try:
+        completed = subprocess.run(
+            [php_bin, "-r", "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;"],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except (OSError, ValueError):  # pragma: no cover - depends on system
+        return None
+
+    version = completed.stdout.strip()
+    return version or None
+
+
+def _system_php_extensions(version: str) -> list[str]:
+    php_bin_template = _config_value("PHP_BIN_TEMPLATE", "php{version}")
+    php_bin = php_bin_template.format(version=version)
+    php_path = shutil.which(php_bin)
+    if not php_path:
+        return []
+
+    try:
+        completed = subprocess.run(
+            [php_path, "-m"],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except OSError:  # pragma: no cover - depends on system
+        return []
+
+    modules = []
+    for line in completed.stdout.splitlines():
+        name = line.strip()
+        if not name or name.startswith("["):
+            continue
+        modules.append(name.lower())
+
+    return sorted(set(modules))
+
 def detect_php_versions() -> list[str]:
+    if not _simulate():
+        system_versions = _system_php_versions()
+        if system_versions:
+            return system_versions
+
     explicit = _config_value("AVAILABLE_PHP_VERSIONS")
     if explicit:
         versions = [v.strip() for v in explicit.split(",") if v.strip()]
@@ -87,12 +152,25 @@ def detect_php_versions() -> list[str]:
 
 
 def available_extensions(version: str | None = None) -> list[str]:
-    _ = version  # reserved for future per-version logic
-    return COMMON_PHP_EXTENSIONS
+    if _simulate():
+        return COMMON_PHP_EXTENSIONS
+
+    target_version = version or _system_default_php_version()
+    if not target_version:
+        return COMMON_PHP_EXTENSIONS
+
+    detected = _system_php_extensions(target_version)
+    return detected or COMMON_PHP_EXTENSIONS
 
 
 def default_php_version() -> str:
-    return detect_php_versions()[0]
+    if not _simulate():
+        system_default = _system_default_php_version()
+        if system_default:
+            return system_default
+
+    versions = detect_php_versions()
+    return versions[0]
 
 
 def _template_text(config_key: str, default: str) -> str:

@@ -63,7 +63,7 @@ class Config:
     AVAILABLE_PHP_VERSIONS = os.environ.get("EZYPANEL_PHP_VERSIONS")
 
     SIMULATE_SERVER_COMMANDS = os.environ.get(
-        "EZYPANEL_SIMULATE", "true"
+        "SIMULATE_SERVER_COMMANDS", "true"
     ).lower() in {"1", "true", "yes"}
 
     @classmethod

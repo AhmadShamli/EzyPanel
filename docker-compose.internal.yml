@@ -2,6 +2,11 @@ version: '3.8'
 
 services:
   ezypanel:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
     build:
       context: .
       dockerfile: Dockerfile
