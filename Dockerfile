@@ -28,17 +28,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmagickwand-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create persistent nginx config directories
-RUN mkdir -p /app/data/nginx/sites-available \
-    /app/data/nginx/sites-enabled
-
-# Remove default nginx site dirs
-RUN rm -rf /etc/nginx/sites-available /etc/nginx/sites-enabled
-
-# Symlink nginx config dirs
-RUN ln -sf /app/data/nginx/sites-available /etc/nginx/sites-available \
-    && ln -sf /app/data/nginx/sites-enabled /etc/nginx/sites-enabled
-
 # PHP 8.5 with all extensions
 RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.5-fpm \
@@ -320,8 +309,18 @@ RUN mkdir -p /app/data/var/www/default/filemanager && \
             -o "/app/data/var/www/default/filemanager/tinyfilemanager.php"; \
     fi
 
-# Configure Nginx
-RUN rm /etc/nginx/sites-enabled/default
+# Create persistent nginx config directories
+RUN mkdir -p /app/data/nginx/sites-available \
+    /app/data/nginx/sites-enabled
+
+# Remove default nginx site dirs
+RUN rm -rf /etc/nginx/sites-available /etc/nginx/sites-enabled
+
+# Symlink nginx config dirs
+RUN ln -sf /app/data/nginx/sites-available /etc/nginx/sites-available \
+    && ln -sf /app/data/nginx/sites-enabled /etc/nginx/sites-enabled
+
+# Default nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/ezypanel-nginx.conf /app/data/nginx/sites-available/ezypanel
 RUN ln -s /app/data/nginx/sites-available/ezypanel /app/data/nginx/sites-enabled/
@@ -331,10 +330,6 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose ports
 EXPOSE 80 443 5000
-
-# Copy logrotate.sh
-COPY docker/logrotate.sh /app/docker/logrotate.sh
-RUN chmod +x /app/docker/logrotate.sh
 
 # Start services
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
