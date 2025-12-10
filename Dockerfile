@@ -21,8 +21,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     supervisor \
     unzip \
+    zip \
+    curl \
     git \
-    logrotate \
+    imagemagick \
+    libmagickwand-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create persistent nginx config directories
