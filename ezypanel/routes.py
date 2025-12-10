@@ -13,6 +13,7 @@ from .services import (
     available_extensions,
     default_php_version,
     detect_php_versions,
+    detect_pool_enabled_extensions,
     disable_domain,
     domain_paths,
     delete_domain_artifacts,
@@ -26,8 +27,11 @@ from .services import (
 
 panel_bp = Blueprint("panel", __name__)
 
-
-HOSTNAME_PATTERN = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)*$")
+# A stricter and fully DNS-compliant ASCII-only regex with punycode support
+HOSTNAME_PATTERN = re.compile(
+    r"^(xn--)?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
+    r"(\.(xn--)?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+)
 
 
 def _is_valid_hostname(hostname: str) -> bool:
@@ -108,6 +112,7 @@ def domain_detail(domain_id: int):
     php_config = read_file(domain.php_fpm_pool_path)
     php_versions = detect_php_versions()
     extensions = available_extensions(domain.php_version)
+    enabled_extensions = detect_pool_enabled_extensions(domain.php_socket_path)
     return render_template(
         "domain_detail.html",
         domain=domain,
@@ -115,6 +120,7 @@ def domain_detail(domain_id: int):
         php_config=php_config,
         php_versions=php_versions,
         extensions=extensions,
+        enabled_extensions=enabled_extensions,
     )
 
 
@@ -167,10 +173,10 @@ def update_php(domain_id: int):
     return redirect(url_for("panel.domain_detail", domain_id=domain.id))
 
 
-@panel_bp.route("/domains/<int:domain_id>/extensions", methods=["POST"])
-def update_extensions_route(domain_id: int):
-    domain = Domain.query.get_or_404(domain_id)
-    selected: Iterable[str] = request.form.getlist("extensions")
-    update_extensions(domain, selected)
-    flash("Extensions updated", "success")
-    return redirect(url_for("panel.domain_detail", domain_id=domain.id))
+# @panel_bp.route("/domains/<int:domain_id>/extensions", methods=["POST"])
+# def update_extensions_route(domain_id: int):
+#     domain = Domain.query.get_or_404(domain_id)
+#     selected: Iterable[str] = request.form.getlist("extensions")
+#     update_extensions(domain, selected)
+#     flash("Extensions updated", "success")
+#     return redirect(url_for("panel.domain_detail", domain_id=domain.id))

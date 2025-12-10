@@ -11,7 +11,6 @@ from flask import current_app
 from .extensions import db
 from .models import Domain
 
-
 @dataclass
 class CommandResult:
     success: bool
@@ -150,6 +149,56 @@ def detect_php_versions() -> list[str]:
 
     return ["8.2", "8.1", "7.4"]
 
+
+# Detect pool enabled extensions using socket
+def detect_pool_enabled_extensions(socket: str) -> list[str]:
+    """
+    Query a PHP-FPM pool socket and return a list of enabled extensions.
+
+    :param socket: Path to the PHP-FPM pool socket (e.g., /run/php/php8.1-my.site.sock)
+    :return: list of extensions enabled for that pool
+    """
+
+    # Inline PHP code executed via FastCGI
+    php_code = "<?php echo json_encode(get_loaded_extensions());"
+
+    # Environment variables for FastCGI request
+    env = {
+        "REQUEST_METHOD": "GET",
+        "SCRIPT_FILENAME": "/proc/self/fd/0",  # Executes the inline PHP code
+    }
+
+    # Run cgi-fcgi and pass PHP code via STDIN
+    try:
+        result = subprocess.run(
+            ["cgi-fcgi", "-bind", "-connect", socket],
+            input=php_code.encode("utf-8"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+            timeout=5,
+        )
+
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"cgi-fcgi error: {result.stderr.decode('utf-8', errors='ignore')}"
+            )
+
+        output = result.stdout.decode("utf-8", errors="ignore")
+
+        # Extract JSON block safely
+        # FastCGI outputs headers first, then PHP output
+        if "[" in output:
+            json_part = output[output.index("["):]
+        else:
+            raise ValueError(f"No JSON found in FastCGI response: {output}")
+
+        return json.loads(json_part)
+
+    except Exception as e:
+        #raise RuntimeError(f"Failed to detect extensions for pool socket {socket}: {e}")
+        # return empty list
+        return []
 
 def available_extensions(version: str | None = None) -> list[str]:
     if _simulate():
@@ -525,9 +574,9 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
     return CommandResult(True, stdout="PHP-FPM pool updated")
 
 
-def update_extensions(domain: Domain, extensions: Iterable[str]) -> None:
-    domain.php_extensions = sorted(set(extensions))
-    db.session.commit()
+#def update_extensions(domain: Domain, extensions: Iterable[str]) -> None:
+#    domain.php_extensions = sorted(set(extensions))
+#    db.session.commit()
 
 
 def domain_summary(domain: Domain) -> dict[str, str]:
