@@ -1,11 +1,19 @@
 server {
-    listen 5001;
-    server_name localhost;
+    listen 80;
+    server_name _;
 
     client_max_body_size 100M;
 
-    # EzyPanel application
-    location / {
+    error_log /var/log/nginx/error.log warn;
+
+    root /app/data/var/www/default/public;
+    index index.php index.html;
+
+    location = /panel {
+        return 301 /panel/;
+    }
+
+    location ^~ /panel/ {
         proxy_pass http://localhost:5000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -13,33 +21,21 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Filemanager (TinyFileManager)
-    location /filemanager/ {
-        alias /app/data/var/www/default/filemanager/;
-        index tinyfilemanager.php;
-    }
-
-    # PHP execution for the filemanager alias
-    location ~ ^/filemanager/.*\.php$ {
-        alias /app/data/var/www/default/filemanager/;
-        fastcgi_pass unix:/app/data/run/php/php8.3-fpm.sock;
-        include fastcgi_params;
-
-        # Correct filesystem path for PHP-FPM
-        fastcgi_param SCRIPT_FILENAME $request_filename;
-    }
-
-    # Static files
-    location /static {
+    location ^~ /static {
         alias /app/ezypanel/static;
         expires 30d;
         access_log off;
     }
 
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
     # PHP-FPM for domain websites
     location ~ \.php$ {
         #include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/app/data/run/php/php8.3-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }

@@ -27,23 +27,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmagickwand-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Add nginx.org key
-RUN curl -fsSL https://nginx.org/keys/nginx_signing.key \
-    | gpg --dearmor \
-    | tee /usr/share/keyrings/nginx.gpg > /dev/null
+# commmented out below as need to install nginx-extras, which not available on nginx.org
+# # Add nginx.org key
+# RUN curl -fsSL https://nginx.org/keys/nginx_signing.key \
+#     | gpg --dearmor \
+#     | tee /usr/share/keyrings/nginx.gpg > /dev/null
 
-# Add official nginx.org repository (mainline)
-RUN . /etc/os-release \
-    && echo "deb [signed-by=/usr/share/keyrings/nginx.gpg] \
-        http://nginx.org/packages/mainline/$ID $VERSION_CODENAME nginx" \
-        > /etc/apt/sources.list.d/nginx.list
+# # Add official nginx.org repository (mainline)
+# RUN . /etc/os-release \
+#     && echo "deb [signed-by=/usr/share/keyrings/nginx.gpg] \
+#         http://nginx.org/packages/mainline/$ID $VERSION_CODENAME nginx" \
+#         > /etc/apt/sources.list.d/nginx.list
 
 # Add Sury key and repo for php
 RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg \
     && echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
 
-# Install nginx mainline (currently ~1.27.x)
-RUN apt-get update && apt-get install -y nginx \
+# Install nginx-extras from deb repo
+RUN apt-get update && apt-get install -y nginx-extras \
     && rm -rf /var/lib/apt/lists/*
 
 # PHP 8.5 with all extensions
@@ -271,20 +272,21 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Create supervisor log dir
 RUN mkdir -p /var/log/supervisor
 
+# Download TinyFileManager
+RUN mkdir -p /app/data/var/www/default/public/filemanager && \
+    if [ ! -f "/app/data/var/www/default/filemanager/tinyfilemanager.php" ]; then \
+        echo "Downloading TinyFileManager..."; \
+        curl -fsSL "https://raw.githubusercontent.com/prasathmani/tinyfilemanager/refs/heads/master/tinyfilemanager.php" \
+            -o "/app/data/var/www/default/public/filemanager/tinyfilemanager.php"; \
+    fi
+    
 RUN chown -R www-data:www-data /app/data/var/www \
     # Temp directory should be world-writable with sticky bit
     && chmod 1777 /app/data/tmp
 
-# Download TinyFileManager
-RUN mkdir -p /app/data/var/www/default/filemanager && \
-    if [ ! -f "/app/data/var/www/default/filemanager/tinyfilemanager.php" ]; then \
-        echo "Downloading TinyFileManager..."; \
-        curl -fsSL "https://raw.githubusercontent.com/prasathmani/tinyfilemanager/refs/heads/master/tinyfilemanager.php" \
-            -o "/app/data/var/www/default/filemanager/tinyfilemanager.php"; \
-    fi
-
 # Remove default nginx site dirs
 RUN rm -rf /etc/nginx/sites-available /etc/nginx/sites-enabled
+RUN rm -rf /etc/nginx/conf.d/default.conf
 
 # Symlink nginx config dirs
 RUN ln -sf /app/data/nginx/sites-available /etc/nginx/sites-available \
