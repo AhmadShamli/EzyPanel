@@ -490,7 +490,7 @@ def enable_domain(domain: Domain) -> CommandResult:
 
     _create_symlink(available, enabled)
 
-    test_result = test_nginx_safe()
+    test_result = test_nginx()
     if not test_result.success:
         if enabled.exists():
             enabled.unlink()
@@ -514,7 +514,7 @@ def disable_domain(domain: Domain) -> CommandResult:
     if enabled.exists() or enabled.is_symlink():
         enabled.unlink()
 
-    test_result = test_nginx_safe()
+    test_result = test_nginx()
     if not test_result.success:
         return CommandResult(False, stderr=f"nginx -t failed: {test_result.stderr}")
 
@@ -547,7 +547,7 @@ def provision_domain(domain: Domain) -> None:
 
 def save_nginx_config(domain: Domain, content: str) -> CommandResult:
     atomic_write(Path(domain.nginx_config_path), content)
-    test_result = test_nginx_safe()
+    test_result = test_nginx()
     if not test_result.success:
         return CommandResult(False, stderr=f"nginx -t failed: {test_result.stderr}")
     return reload_nginx()
@@ -597,7 +597,7 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
     #
     # 4. Test Nginx safely (avoid pid lock)
     #
-    nginx_test = test_nginx_safe()
+    nginx_test = test_nginx()
 
     if not nginx_test.success:
         return CommandResult(

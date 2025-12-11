@@ -14,5 +14,6 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     with app.app_context():
         db.create_all()
 
-    app.register_blueprint(panel_bp)
+    app.register_blueprint(panel_bp, url_prefix="/panel")
     return app
+
