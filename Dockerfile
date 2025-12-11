@@ -290,21 +290,19 @@ RUN set -eux; \
         [ -d "$v" ] || continue; \
         ver="$(basename "$v")"; \
         if [ -d "/etc/php/$ver/fpm" ]; then \
+            conf="/etc/php/$ver/fpm/php-fpm.conf"; \
             echo "Configuring PHP-FPM version: $ver"; \
             mkdir -p "/app/data/php-fpm/$ver/pool.d"; \
-            cp /etc/php/$ver/fpm/pool.d/www.conf /app/data/php-fpm/$ver/pool.d/
-            rm -rf "/etc/php/$ver/fpm/pool.d"; \
-            ln -sf "/app/data/php-fpm/$ver/pool.d" "/etc/php/$ver/fpm/pool.d"; \
+            if ! grep -q "EzyPanel dynamic pool directory" "$conf"; then \
+                echo "" >> "$conf"; \
+                echo "; EzyPanel dynamic pool directory" >> "$conf"; \
+                echo "include=/app/data/php-fpm/$ver/pool.d/*.conf" >> "$conf"; \
+            fi; \
         fi; \
     done
 
 # Remove default nginx site dirs
-RUN rm -rf /etc/nginx/sites-available /etc/nginx/sites-enabled
 RUN rm -rf /etc/nginx/conf.d/default.conf
-
-# Symlink nginx config dirs
-RUN ln -sf /app/data/nginx/sites-available /etc/nginx/sites-available \
-    && ln -sf /app/data/nginx/sites-enabled /etc/nginx/sites-enabled
 
 # Default nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
