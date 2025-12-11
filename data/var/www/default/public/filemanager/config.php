@@ -1,5 +1,6 @@
 <?php
 
+
 /*
 #################################################################################################################
 This is an OPTIONAL configuration file. rename this file into config.php to use this configuration 

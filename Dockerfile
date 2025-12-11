@@ -284,6 +284,20 @@ RUN chown -R www-data:www-data /app/data/var/www \
     # Temp directory should be world-writable with sticky bit
     && chmod 1777 /app/data/tmp
 
+# Detect installed PHP versions and prepare directories + symlinks
+RUN set -eux; \
+    for v in /etc/php/*; do \
+        [ -d "$v" ] || continue; \
+        ver="$(basename "$v")"; \
+        if [ -d "/etc/php/$ver/fpm" ]; then \
+            echo "Configuring PHP-FPM version: $ver"; \
+            mkdir -p "/app/data/php-fpm/$ver/pool.d"; \
+            cp /etc/php/$ver/fpm/pool.d/www.conf /app/data/php-fpm/$ver/pool.d/
+            rm -rf "/etc/php/$ver/fpm/pool.d"; \
+            ln -sf "/app/data/php-fpm/$ver/pool.d" "/etc/php/$ver/fpm/pool.d"; \
+        fi; \
+    done
+
 # Remove default nginx site dirs
 RUN rm -rf /etc/nginx/sites-available /etc/nginx/sites-enabled
 RUN rm -rf /etc/nginx/conf.d/default.conf

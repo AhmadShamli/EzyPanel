@@ -55,15 +55,14 @@
         <div class="php-info">
             <h3>Server Information:</h3>
             <p><strong>PHP Version:</strong> <?php echo phpversion(); ?></p>
-            <p><strong>Server Software:</strong> <?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'N/A'; ?></p>
-            <p><strong>Document Root:</strong> <?php echo $_SERVER['DOCUMENT_ROOT'] ?? 'N/A'; ?></p>
+            <p><strong>Server Software:</strong> <?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'N/A'; ?></p>    
         </div>
         
         <p style="margin-top: 2rem; color: #666; font-size: 0.9rem;">
             This is a default page. Replace this file with your own content.
         </p>
         <p align="center">
-            Hosted with <a href="" target="_blank">EzyPanel</a>
+            Hosted with <a href="https://github.com/AhmadShamli/EzyPanel" target="_blank">EzyPanel</a>
         </p>
     </div>
 </body>
