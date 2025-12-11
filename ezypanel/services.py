@@ -611,9 +611,9 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
     reload_nginx()
 
     #
-    # 6. Reload only this PHP-FPM version using PID signal (Docker compatible)
+    # 6. Reload only this PHP-FPM
     #
-    reload_result = reload_php_fpm_signal(domain.php_version)
+    reload_result = reload_php_fpm(domain.php_version)
 
     if not reload_result.success:
         return CommandResult(

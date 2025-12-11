@@ -292,12 +292,13 @@ RUN set -eux; \
         if [ -d "/etc/php/$ver/fpm" ]; then \
             conf="/etc/php/$ver/fpm/php-fpm.conf"; \
             echo "Configuring PHP-FPM version: $ver"; \
-            mkdir -p "/app/data/php-fpm/$ver/pool.d"; \
             if ! grep -q "EzyPanel dynamic pool directory" "$conf"; then \
                 echo "" >> "$conf"; \
                 echo "; EzyPanel dynamic pool directory" >> "$conf"; \
                 echo "include=/app/data/php-fpm/$ver/pool.d/*.conf" >> "$conf"; \
             fi; \
+            # Remove default www.conf
+            rm -f "/etc/php/$ver/fpm/pool.d/www.conf"; \
         fi; \
     done
 
