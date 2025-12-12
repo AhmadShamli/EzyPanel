@@ -55,6 +55,7 @@ class Config:
 
     NGINX_BIN = os.environ.get("EZYPANEL_NGINX_BIN", "nginx")
     SYSTEMCTL_BIN = os.environ.get("EZYPANEL_SYSTEMCTL_BIN", "systemctl")
+    SUPERVISOR_CTL = os.environ.get("EZYPANEL_SUPERVISORCTL", "supervisorctl")
     PHP_BIN_TEMPLATE = os.environ.get("EZYPANEL_PHP_BIN_TEMPLATE", "php{version}")
     PHP_FPM_SERVICE_TEMPLATE = os.environ.get(
         "EZYPANEL_PHP_FPM_SERVICE_TEMPLATE", "php{version}-fpm"

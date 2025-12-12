@@ -442,35 +442,16 @@ def test_nginx() -> CommandResult:
     nginx_bin = _config_value("NGINX_BIN")
     return _run_command([nginx_bin, "-t"])
 
-def test_nginx_safe() -> CommandResult:
-    # Use temporary pid file so running nginx doesn't block config test
-    cmd = ["nginx", "-t", "-g", "pid /tmp/nginx-test.pid;"]
-    return _run_command(cmd)
-
 def reload_nginx() -> CommandResult:
     nginx_bin = _config_value("NGINX_BIN")
-    return _run_command([nginx_bin, "-s", "reload"])
-
+    supervisorctl = _config_value("SUPERVISOR_CTL")
+    return _run_command([supervisorctl, "restart", nginx_bin])
 
 def reload_php_fpm(version: str) -> CommandResult:
     tmpl = _config_value("PHP_FPM_SERVICE_TEMPLATE")
     service_name = tmpl.format(version=version)
-    systemctl = _config_value("SYSTEMCTL_BIN")
-    return _run_command([systemctl, "reload", service_name])
-
-def reload_php_fpm_signal(version: str) -> CommandResult:
-    pid_file = f"/run/php/php{version}-fpm.pid"
-
-    if not os.path.exists(pid_file):
-        return CommandResult(False, stderr=f"PHP-FPM PID file not found: {pid_file}")
-
-    try:
-        with open(pid_file) as f:
-            pid = int(f.read().strip())
-        os.kill(pid, signal.SIGUSR2)  # graceful reload
-        return CommandResult(True, stdout=f"PHP-FPM {version} reloaded")
-    except Exception as e:
-        return CommandResult(False, stderr=str(e))
+    supervisorctl = _config_value("SUPERVISOR_CTL")
+    return _run_command([supervisorctl, "reload", service_name])
 
 def _create_symlink(source: Path, link: Path) -> None:
     if link.exists() or link.is_symlink():
