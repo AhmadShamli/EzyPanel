@@ -20,7 +20,7 @@ php_admin_value[max_execution_time] = 300
 php_admin_value[max_input_time] = 300
 php_admin_value[request_terminate_timeout] = 300
 
-php_admin_value[session.save_path] = /app/data/sessions
+php_admin_value[session.save_path] = /app/data/var/wwww/{{HOSTNAME}}/sessions
 php_admin_value[session.save_handler] = files
 php_admin_value[session.gc_maxlifetime] = 1440
 php_admin_value[session.cookie_httponly] = 1
@@ -38,9 +38,9 @@ php_admin_flag[log_errors] = on
 php_admin_value[error_reporting] = E_ALL & ~E_DEPRECATED & ~E_STRICT
 php_admin_value[error_log] = /app/data/logs/php/{{HOSTNAME}}-error.log
 
-php_admin_value[open_basedir] = /app/data/var/www/{{HOSTNAME}}/:/tmp/
+php_admin_value[open_basedir] = /app/data/var/www/{{HOSTNAME}}/
 php_admin_value[doc_root] = /app/data/var/www/{{HOSTNAME}}/public
-php_admin_value[sys_temp_dir] = /tmp
-php_admin_value[upload_tmp_dir] = /app/data/tmp
+php_admin_value[sys_temp_dir] = /app/data/var/www/{{HOSTNAME}}/tmp
+php_admin_value[upload_tmp_dir] = /app/data/var/www/{{HOSTNAME}}/tmp
 
 php_admin_value[disable_functions] = exec,passthru,shell_exec,system,proc_open,popen,curl_exec,curl_multi_exec,parse_ini_file,show_source
