@@ -281,6 +281,7 @@ RUN mkdir -p /app/data/var/www/default/public/filemanager && \
     fi
     
 RUN chown -R www-data:www-data /app/data/var/www \
+    chown -R www-data:www-data /app/data/sessions \
     # Temp directory should be world-writable with sticky bit
     && chmod 1777 /app/data/tmp
 
