@@ -5,6 +5,7 @@ import subprocess
 import os, signal
 from dataclasses import dataclass
 from pathlib import Path
+from this import d
 from typing import Iterable, Sequence
 
 from flask import current_app
@@ -130,6 +131,9 @@ def _system_php_extensions(version: str) -> list[str]:
 
     return sorted(set(modules))
 
+def _change_ownership(path: Path, user: str, group: str) -> None:
+    subprocess.run(["chown", "-R", f"{user}:{group}", str(path)], check=False)
+
 def detect_php_versions() -> list[str]:
     if not _simulate():
         system_versions = _system_php_versions()
@@ -238,20 +242,26 @@ def _render_template(template: str, context: dict[str, str]) -> str:
 
 
 def domain_paths(hostname: str, php_version: str) -> dict[str, Path]:
-    doc_root = Path(_config_value("DOCUMENT_ROOT_BASE")) / hostname / "public"
+    domain_dir = Path(_config_value("DOCUMENT_ROOT_BASE")) / hostname
+    doc_root = domain_dir / "public"
     nginx_config = Path(_config_value("NGINX_AVAILABLE_DIR")) / f"{hostname}.conf"
     php_pool = Path(_config_value("PHP_FPM_BASE_DIR")) / php_version / "pool.d" / f"{hostname}.conf"
     php_socket = Path(_config_value("PHP_SOCKET_BASE_DIR")) / f"{hostname}-{php_version}.sock"
     enabled_link = Path(_config_value("NGINX_ENABLED_DIR")) / f"{hostname}.conf"
     log_dir = Path(_config_value("DATA_DIR")) / "logs" / hostname
+    sessions = domain_dir / "sessions"
+    tmp = domain_dir / "tmp"
 
     return {
+        "domain_dir": domain_dir,
         "document_root": doc_root,
         "nginx_config": nginx_config,
         "php_pool": php_pool,
         "php_socket": php_socket,
         "enabled_link": enabled_link,
         "log_dir": log_dir,
+        "sessions": sessions,
+        "tmp": tmp
     }
 
 
@@ -272,11 +282,14 @@ def _remove_path(path: Path) -> str | None:
 
 
 def ensure_domain_layout(paths: dict[str, Path]) -> None:
+    paths["domain_dir"].mkdir(parents=True, exist_ok=True)
     paths["document_root"].mkdir(parents=True, exist_ok=True)
     paths["nginx_config"].parent.mkdir(parents=True, exist_ok=True)
     paths["php_pool"].parent.mkdir(parents=True, exist_ok=True)
     paths["enabled_link"].parent.mkdir(parents=True, exist_ok=True)
     paths["log_dir"].mkdir(parents=True, exist_ok=True)
+    paths["sessions"].mkdir(parents=True, exist_ok=True)
+    paths["tmp"].mkdir(parents=True, exist_ok=True)
 
 
 def write_default_index(hostname: str, doc_root: Path) -> None:
@@ -511,6 +524,8 @@ def disable_domain(domain: Domain) -> CommandResult:
 def provision_domain(domain: Domain) -> None:
     paths = domain_paths(domain.hostname, domain.php_version)
     ensure_domain_layout(paths)
+
+    _change_ownership(paths["domain_dir"], "www-data", "www-data")
 
     domain.document_root = str(paths["document_root"])
     domain.nginx_config_path = str(paths["nginx_config"])

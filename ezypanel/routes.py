@@ -96,6 +96,8 @@ def add_domain():
         php_fpm_pool_path=str(paths["php_pool"]),
         php_socket_path=str(paths["php_socket"]),
         notes=notes,
+        sessions=str(paths["sessions"]),
+        tmp=str(paths["tmp"]),
     )
     db.session.add(domain)
     db.session.commit()
