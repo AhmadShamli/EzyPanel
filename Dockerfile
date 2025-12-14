@@ -280,10 +280,7 @@ RUN mkdir -p /app/data/var/www/default/public/filemanager && \
             -o "/app/data/var/www/default/public/filemanager/tinyfilemanager.php"; \
     fi
     
-RUN chown -R www-data:www-data /app/data/var/www \
-    && chown -R www-data:www-data /app/data/sessions \
-    # Temp directory should be world-writable with sticky bit
-    && chmod 1777 /app/data/tmp
+RUN chown -R www-data:www-data /app/data/var/www 
 
 # Detect installed PHP versions and prepare directories + symlinks
 RUN set -eux; \
