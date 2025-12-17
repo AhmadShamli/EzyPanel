@@ -43,4 +43,4 @@ php_admin_value[doc_root] = /app/data/var/www/{{HOSTNAME}}/public
 php_admin_value[sys_temp_dir] = /app/data/var/www/{{HOSTNAME}}/tmp
 php_admin_value[upload_tmp_dir] = /app/data/var/www/{{HOSTNAME}}/tmp
 
-php_admin_value[disable_functions] = exec,passthru,shell_exec,system,proc_open,popen,curl_exec,curl_multi_exec,parse_ini_file,show_source
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system,proc_open,popen,curl_multi_exec,parse_ini_file,show_source
