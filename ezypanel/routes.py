@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 from typing import Iterable
 
@@ -26,6 +27,7 @@ from .services import (
 )
 
 panel_bp = Blueprint("panel", __name__)
+logger = logging.getLogger(__name__)
 
 # A stricter and fully DNS-compliant ASCII-only regex with punycode support
 HOSTNAME_PATTERN = re.compile(
@@ -58,6 +60,7 @@ def handle_result(result: CommandResult) -> None:
 
 @panel_bp.route("/")
 def dashboard():
+    logger.debug("dashboard")
     domains = Domain.query.order_by(Domain.hostname.asc()).all()
     php_versions = detect_php_versions()
     return render_template(
@@ -72,6 +75,7 @@ def add_domain():
     hostname = request.form.get("hostname", "").strip().lower()
     php_version = request.form.get("php_version") or default_php_version()
     notes = request.form.get("notes")
+    logger.debug("add_domain hostname=%s php_version=%s", hostname, php_version)
     if not hostname:
         flash("Domain is required", "danger")
         return redirect(url_for("panel.dashboard"))
@@ -109,6 +113,7 @@ def add_domain():
 
 @panel_bp.route("/domains/<int:domain_id>")
 def domain_detail(domain_id: int):
+    logger.debug("domain_detail domain_id=%s", domain_id)
     domain = Domain.query.get_or_404(domain_id)
     nginx_config = read_file(domain.nginx_config_path)
     php_config = read_file(domain.php_fpm_pool_path)
@@ -129,6 +134,7 @@ def domain_detail(domain_id: int):
 @panel_bp.route("/domains/<int:domain_id>/toggle", methods=["POST"])
 def toggle_domain(domain_id: int):
     domain = Domain.query.get_or_404(domain_id)
+    logger.debug("toggle_domain domain_id=%s hostname=%s enabled=%s", domain_id, domain.hostname, domain.enabled)
     result = enable_domain(domain) if not domain.enabled else disable_domain(domain)
     handle_result(result)
     return redirect(url_for("panel.dashboard"))
@@ -137,6 +143,7 @@ def toggle_domain(domain_id: int):
 @panel_bp.route("/domains/<int:domain_id>/delete", methods=["POST"])
 def delete_domain(domain_id: int):
     domain = Domain.query.get_or_404(domain_id)
+    logger.info("delete_domain domain_id=%s hostname=%s", domain_id, domain.hostname)
 
     if domain.enabled:
         result = disable_domain(domain)
@@ -160,6 +167,7 @@ def delete_domain(domain_id: int):
 def update_nginx(domain_id: int):
     domain = Domain.query.get_or_404(domain_id)
     content = request.form.get("nginx_config", "")
+    logger.debug("update_nginx domain_id=%s hostname=%s content_len=%s", domain_id, domain.hostname, len(content))
     result = save_nginx_config(domain, content)
     handle_result(result)
     return redirect(url_for("panel.domain_detail", domain_id=domain.id))
@@ -170,6 +178,14 @@ def update_php(domain_id: int):
     domain = Domain.query.get_or_404(domain_id)
     content = request.form.get("php_config", "")
     php_version = request.form.get("php_version") or domain.php_version
+    logger.debug(
+        "update_php domain_id=%s hostname=%s from_version=%s to_version=%s content_len=%s",
+        domain_id,
+        domain.hostname,
+        domain.php_version,
+        php_version,
+        len(content),
+    )
     result = save_php_config(domain, content, php_version)
     handle_result(result)
     return redirect(url_for("panel.domain_detail", domain_id=domain.id))
@@ -178,7 +194,6 @@ def update_php(domain_id: int):
 # @panel_bp.route("/domains/<int:domain_id>/extensions", methods=["POST"])
 # def update_extensions_route(domain_id: int):
 #     domain = Domain.query.get_or_404(domain_id)
-#     selected: Iterable[str] = request.form.getlist("extensions")
 #     update_extensions(domain, selected)
 #     flash("Extensions updated", "success")
 #     return redirect(url_for("panel.domain_detail", domain_id=domain.id))

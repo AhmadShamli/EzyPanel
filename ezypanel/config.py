@@ -10,6 +10,8 @@ class Config:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     CONFIG_TEMPLATE_DIR = BASE_DIR / "config_templates"
 
+    EZYPANEL_LOG_LEVEL = os.environ.get("EZYPANEL_LOG_LEVEL", "INFO").upper()
+
     SQLALCHEMY_DATABASE_URI = (
         os.environ.get("EZYPANEL_DATABASE_URI")
         or f"sqlite:///{(DATA_DIR / 'panel.db').as_posix()}"

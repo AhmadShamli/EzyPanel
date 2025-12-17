@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import logging
 import shutil
 import subprocess
 import os, signal
@@ -12,6 +14,8 @@ from flask import current_app
 
 from .extensions import db
 from .models import Domain
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class CommandResult:
@@ -32,6 +36,7 @@ def _simulate() -> bool:
     return bool(_config_value("SIMULATE_SERVER_COMMANDS", True))
 
 def _run_command(args: Sequence[str]) -> CommandResult:
+    logger.debug("run_command args=%s simulate=%s", list(args), _simulate())
     if _simulate():
         return CommandResult(True, stdout=f"Simulated: {' '.join(args)}")
 
@@ -47,6 +52,14 @@ def _run_command(args: Sequence[str]) -> CommandResult:
         return CommandResult(False, stderr=str(exc))
 
     success = completed.returncode == 0
+    if success:
+        logger.debug("command_success returncode=%s stdout_len=%s", completed.returncode, len((completed.stdout or "").strip()))
+    else:
+        logger.warning(
+            "command_failed returncode=%s stderr=%s",
+            completed.returncode,
+            (completed.stderr or "").strip(),
+        )
     return CommandResult(success, stdout=completed.stdout.strip(), stderr=completed.stderr.strip())
 
 
@@ -138,18 +151,21 @@ def detect_php_versions() -> list[str]:
     if not _simulate():
         system_versions = _system_php_versions()
         if system_versions:
+            logger.debug("detect_php_versions system=%s", system_versions)
             return system_versions
 
     explicit = _config_value("AVAILABLE_PHP_VERSIONS")
     if explicit:
         versions = [v.strip() for v in explicit.split(",") if v.strip()]
         if versions:
+            logger.debug("detect_php_versions explicit=%s", versions)
             return versions
 
     base_dir = Path(_config_value("PHP_FPM_BASE_DIR"))
     if base_dir.exists():
         versions = sorted({p.name for p in base_dir.iterdir() if p.is_dir()})
         if versions:
+            logger.debug("detect_php_versions from_dir=%s versions=%s", str(base_dir), versions)
             return versions
 
     return ["8.2", "8.1", "7.4"]
@@ -175,6 +191,7 @@ def detect_pool_enabled_extensions(socket: str) -> list[str]:
 
     # Run cgi-fcgi and pass PHP code via STDIN
     try:
+        logger.debug("detect_pool_enabled_extensions socket=%s", socket)
         result = subprocess.run(
             ["cgi-fcgi", "-bind", "-connect", socket],
             input=php_code.encode("utf-8"),
@@ -198,11 +215,14 @@ def detect_pool_enabled_extensions(socket: str) -> list[str]:
         else:
             raise ValueError(f"No JSON found in FastCGI response: {output}")
 
-        return json.loads(json_part)
+        extensions = json.loads(json_part)
+        logger.debug("detect_pool_enabled_extensions found_count=%s", len(extensions) if isinstance(extensions, list) else "?")
+        return extensions
 
     except Exception as e:
         #raise RuntimeError(f"Failed to detect extensions for pool socket {socket}: {e}")
         # return empty list
+        logger.debug("detect_pool_enabled_extensions failed socket=%s error=%s", socket, e)
         return []
 
 def available_extensions(version: str | None = None) -> list[str]:
@@ -476,6 +496,7 @@ def _create_symlink(source: Path, link: Path) -> None:
 
 
 def enable_domain(domain: Domain) -> CommandResult:
+    logger.info("enable_domain hostname=%s php_version=%s", domain.hostname, domain.php_version)
     paths = domain_paths(domain.hostname, domain.php_version)
     available = paths["nginx_config"]
     enabled = paths["enabled_link"]
@@ -503,6 +524,7 @@ def enable_domain(domain: Domain) -> CommandResult:
 
 
 def disable_domain(domain: Domain) -> CommandResult:
+    logger.info("disable_domain hostname=%s php_version=%s", domain.hostname, domain.php_version)
     paths = domain_paths(domain.hostname, domain.php_version)
     enabled = paths["enabled_link"]
     if enabled.exists() or enabled.is_symlink():
@@ -542,6 +564,7 @@ def provision_domain(domain: Domain) -> None:
 
 
 def save_nginx_config(domain: Domain, content: str) -> CommandResult:
+    logger.debug("save_nginx_config hostname=%s path=%s content_len=%s", domain.hostname, domain.nginx_config_path, len(content))
     atomic_write(Path(domain.nginx_config_path), content)
     test_result = test_nginx()
     if not test_result.success:
@@ -553,6 +576,14 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
     original_version = domain.php_version
     original_socket = domain.php_socket_path
     original_pool_path = domain.php_fpm_pool_path
+
+    logger.debug(
+        "save_php_config hostname=%s from_version=%s to_version=%s content_len=%s",
+        domain.hostname,
+        original_version,
+        php_version,
+        len(content),
+    )
 
     #
     # 1. Handle version change
@@ -596,6 +627,7 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
     nginx_test = test_nginx()
 
     if not nginx_test.success:
+        logger.warning("save_php_config nginx_test_failed hostname=%s error=%s", domain.hostname, nginx_test.stderr)
         return CommandResult(
             False,
             stderr=f"Nginx configuration test failed:\n{nginx_test.stderr}",
@@ -612,6 +644,7 @@ def save_php_config(domain: Domain, content: str, php_version: str) -> CommandRe
     reload_result = reload_php_fpm(domain.php_version)
 
     if not reload_result.success:
+        logger.warning("save_php_config php_fpm_reload_failed hostname=%s error=%s", domain.hostname, reload_result.stderr)
         return CommandResult(
             False,
             stderr=f"PHP-FPM reload failed:\n{reload_result.stderr}",
